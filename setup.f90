@@ -88,11 +88,8 @@ ALLOCATE(r_grid(1:nx,1:ny,1:nz))
 ALLOCATE(th_grid(1:nx,1:ny,1:nz))
 ALLOCATE(phi_grid(1:nx,1:ny,1:nz))
 ALLOCATE(vol(1:nx,1:ny,1:nz))
-ALLOCATE(gdet(1:nx,1:ny,1:nz))
 
 ! Fluid !
-ALLOCATE(rho(1:nx,1:ny,1:nz))
-ALLOCATE(beta(1:nx,1:ny,1:nz))
 ALLOCATE(gamma(1:nx,1:ny,1:nz))
 ALLOCATE(gammam1(1:nx,1:ny,1:nz))
 ALLOCATE(beta_vel(1:nx,1:ny,1:nz))

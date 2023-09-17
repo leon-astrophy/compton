@@ -34,17 +34,8 @@ REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: phi_grid
 ! Volume !
 REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: vol
 
-! determinant of the black hole metric !
-REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: gdet
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Fluid variables !
-
-! Mass density !
-REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: rho
-
-! Plasma beta !
-REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: beta
 
 ! Relativistic Gamma !
 REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: gamma

@@ -116,7 +116,8 @@ IF(delta) THEN
 
 ELSE IF(gaussian) THEN
 
-  ! Not yet implemented !
+  ! Not yet implemented 
+  STOP 'gaussian beam not implemented'
 
 END IF
 

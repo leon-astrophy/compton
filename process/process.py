@@ -5,6 +5,7 @@
 ######################################################
 
 #import#
+import sys
 import h5py
 import pyharm
 import numpy as np
@@ -12,7 +13,7 @@ import numpy as np
 ######################################################
 
 #read#
-files = "torus.h5"
+files = sys.argv[1]
 dump = pyharm.load_dump(files)
 
 # assign #
@@ -39,6 +40,8 @@ gamma = dump['Gamma']
 vol = gdet*dx1*dx2*dx3
 
 ######################################################
+
+#rho[np.where(gamma < 1.1)] = 0
 
 # repeat #
 r = np.repeat(r, n3, axis=2)

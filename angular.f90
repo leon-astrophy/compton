@@ -156,6 +156,7 @@ IF(headon) THEN
 ELSEIF(full) THEN
 
   ! Not yet implemented
+  STOP 'full integral not implemented'
 
 END IF
 

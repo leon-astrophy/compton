@@ -70,6 +70,7 @@ DO n = 1, n_angle
           CALL ANG_FAC_POWERLAW(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_isc(i,j,k), ang_fac_qsc(i,j,k), ang_fac_usc(i,j,k))
         ELSEIF(custom) THEN
           ! Not yet implemented 
+          STOP 'custom radiation field not implemented'
         END IF
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -135,6 +136,7 @@ DO n = 1, n_angle
             CALL ANG_FAC_POWERLAW(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
           ELSEIF(custom) THEN
             ! Not yet implemented 
+            STOP 'custom radiation field not implemented'
           END IF
 
         END DO
@@ -168,6 +170,7 @@ DO n = 1, n_angle
             CALL ANG_FAC_POWERLAW(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
           ELSEIF(custom) THEN
             ! Not yet implemented 
+            STOP 'custom radiation field not implemented'
           END IF
 
         END DO

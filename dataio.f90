@@ -9,6 +9,14 @@ USE DEFINITION
 USE CLA
 IMPLICIT NONE
 
+! String !
+CHARACTER (len=99) :: freq
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! convert to string !
+write(freq, *) nu_light
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Initialize CLA
@@ -17,10 +25,12 @@ CALL CLA_INIT
 ! Register? IDK !
 CALL CLA_REGISTER('-o', '--outfile', 'str', cla_char, output_file)
 CALL CLA_REGISTER('-s', '--snapshot', 'str', cla_char, grmhd_file)
+CALL CLA_REGISTER('-f', '--frequency', 'real', cla_float, freq)
 
 ! Get values !
 CALL CLA_GET_CHAR('--outfile', output_file)
 CALL CLA_GET_CHAR('--snapshot', grmhd_file)
+CALL CLA_GET_FLOAT_R8('--frequency', nu_light)
 
 END SUBROUTINE
 
