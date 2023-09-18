@@ -22,7 +22,6 @@ def plot(x, y, z, phi_in, var, cmap1, cmap2):
   plt.clf()
   zmin = np.nanmin(z)
   zmax = np.nanmax(z)
-  print(zmin)
   if(zmin*zmax < 0):
     norm = TwoSlopeNorm(vmin=zmin, vcenter=0, vmax=zmax)
     tick1 = np.linspace(zmin, 0, 5, endpoint=False)
