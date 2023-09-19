@@ -21,10 +21,10 @@ INTEGER :: nth = 128
 INTEGER :: nphi = 128
 
 ! Viewing angle density !
-INTEGER, PARAMETER :: n_angle = 100
+INTEGER, PARAMETER :: n_angle = 50
 
 ! Electron distribution angle for dirac-delta function !
-REAL*8, PARAMETER :: theta_j = 0.6d0
+REAL*8, PARAMETER :: theta_j = 0.0d0
 
 ! Electron distribution gamma for dirac-delta function !
 REAL*8, PARAMETER :: gamma_j = 2.0d0
@@ -42,8 +42,8 @@ LOGICAL, PARAMETER :: analytic = .true.
 LOGICAL, PARAMETER :: grmhd = .false.
 
 ! Integration mode, head-one approximation or full calculation !
-LOGICAL, PARAMETER :: headon = .true.
-LOGICAL, PARAMETER :: full = .false.
+LOGICAL, PARAMETER :: headon = .false.
+LOGICAL, PARAMETER :: full = .true.
 
 ! The radiation field, power law or customized !
 LOGICAL, PARAMETER :: powerlaw = .true.

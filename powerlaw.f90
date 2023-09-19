@@ -54,8 +54,6 @@ REAL*8 :: cosrho0_p, sinrho0_p
 REAL*8 :: cos2zeta, sin2zeta
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Initialize !
-pdegree(:) = 999.0d0
 
 ! Loop over the viewing angle !
 DO n = 1, n_angle
@@ -119,9 +117,95 @@ DO n = 1, n_angle
   stokes_total(1,n) = isc_total
   stokes_total(2,n) = qsc_total
   stokes_total(3,n) = usc_total
-  pdegree(n) = (qsc_total/isc_total)*DSQRT(1.0d0 + (usc_total/qsc_total)**2)
+  pdegree(n) = (qsc_total/isc_total)
 
 END DO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Locate minimum and maximum index !
+n_min = MINLOC(pdegree, DIM=1)
+n_max = MAXLOC(pdegree, DIM=1)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for angular factor at minimum !
+
+! Initialize !
+n = n_min
+theta_view = theta_0(n)
+isc_total = 0.0d0
+qsc_total = 0.0d0
+usc_total = 0.0d0
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Assign !
+sin_0 = DSIN(theta_0(n))
+cos_0 = DCOS(theta_0(n))
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! We loop over the computational domain !
+!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+DO i = 1, nx
+  DO j = 1, ny
+    DO k = 1, nz
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angles !
+      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angular contribution !
+      CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
+      
+    END DO
+  END DO
+END DO
+!$OMP END PARALLEL DO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for angular factor at maximum !
+
+! Initialize !
+n = n_max
+theta_view = theta_0(n)
+isc_total = 0.0d0
+qsc_total = 0.0d0
+usc_total = 0.0d0
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Assign !
+sin_0 = DSIN(theta_0(n))
+cos_0 = DCOS(theta_0(n))
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! We loop over the computational domain !
+!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+DO i = 1, nx
+  DO j = 1, ny
+    DO k = 1, nz
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angles !
+      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angular contribution !
+      CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
+      
+    END DO
+  END DO
+END DO
+!$OMP END PARALLEL DO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -141,6 +225,9 @@ IMPLICIT NONE
 ! Integer ! 
 INTEGER :: n, i, j, k
 
+! Integer !
+INTEGER :: n_min, n_max
+
 ! Angles !
 REAL*8 :: sin_0, cos_0
 
@@ -157,8 +244,6 @@ REAL*8 :: cosrho0_p, sinrho0_p
 REAL*8 :: cos2zeta, sin2zeta
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Initialize !
-pdegree(:) = 999.0d0
 
 ! Loop over the viewing angle !
 DO n = 1, n_angle
@@ -222,9 +307,95 @@ DO n = 1, n_angle
   stokes_total(1,n) = isc_total
   stokes_total(2,n) = qsc_total
   stokes_total(3,n) = usc_total
-  pdegree(n) = (qsc_total/isc_total)*DSQRT(1.0d0 + (usc_total/qsc_total)**2)
+  pdegree(n) = (qsc_total/isc_total)
 
 END DO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Locate minimum and maximum index !
+n_min = MINLOC(pdegree, DIM=1)
+n_max = MAXLOC(pdegree, DIM=1)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for angular factor at minimum pd
+
+! Initialize
+n = n_min
+theta_view = theta_0(n)
+isc_total = 0.0d0
+qsc_total = 0.0d0
+usc_total = 0.0d0
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Assign !
+sin_0 = DSIN(theta_0(n))
+cos_0 = DCOS(theta_0(n))
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! We loop over the computational domain !
+!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+DO i = 1, nx
+  DO j = 1, ny
+    DO k = 1, nz
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angles !
+      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angular contribution !
+      CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
+    
+    END DO
+  END DO
+END DO
+!$OMP END PARALLEL DO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for angular factor at minimum pd
+
+! Initialize !
+n = n_max
+theta_view = theta_0(n)
+isc_total = 0.0d0
+qsc_total = 0.0d0
+usc_total = 0.0d0
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Assign !
+sin_0 = DSIN(theta_0(n))
+cos_0 = DCOS(theta_0(n))
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! We loop over the computational domain !
+!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+DO i = 1, nx
+  DO j = 1, ny
+    DO k = 1, nz
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angles !
+      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! Get angular contribution !
+      CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
+    
+    END DO
+  END DO
+END DO
+!$OMP END PARALLEL DO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
