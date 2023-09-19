@@ -135,8 +135,6 @@ INTEGER :: error
 ! Data dims !
 INTEGER(HSIZE_T), DIMENSION(3) :: data_dims
 
-integer(hsize_t), dimension(3)               :: dims,maxdims
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Initialize FORTRAN interface !
@@ -418,10 +416,10 @@ data_dims(3) = nz
 call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
 
 ! create dataset !
-call h5dcreate_f(file_id,"gammam1",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
+call h5dcreate_f(file_id,"gam_fac",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
 
 ! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,gammam1,data_dims,error)
+call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,gam_fac,data_dims,error)
 
 ! close dataset !
 call h5dclose_f(dset_id,error)

@@ -3,7 +3,8 @@
 ./cla.f90
 ./main.f90 
 ./setup.f90
-./model.f90
-./integrate.f90
-./angular.f90
+./initial.f90
+./angles.f90
 ./dataio.f90
+./powerlaw.f90
+./model.f90

@@ -117,7 +117,7 @@ phi_grid = data['phi-dir'][:].T
 # assign #
 nebar = data['electron'][:].T
 vol = data['volume'][:].T
-gammam1 = data['gammam1'][:].T
+gam_fac = data['gam_fac'][:].T
 
 # assign #
 angular = data['angular'][:].T
@@ -145,6 +145,7 @@ ax1.legend()
 ax1.grid()
 ax2.hlines(y = 90, xmin = theta.min()*180/math.pi, xmax = theta.max()*180/math.pi, color='black', linestyles='-.')
 ax2.plot(theta*180/math.pi, 0.5*(math.pi - np.arctan(usc_total/qsc_total))*180/math.pi, label=r'EVPA')
+ax2.set_ylim(0, 180)
 ax2.legend()
 ax2.grid()
 fig.text(0.01, 0.5, r'$y$', va='center', rotation='vertical')

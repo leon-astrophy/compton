@@ -19,6 +19,17 @@ REAL*8 :: isc_total, qsc_total, usc_total
 ! Current viewing angle !
 REAL*8 :: theta_view 
 
+! Step in the double integral !
+REAL*8 :: drhop, dalphap
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Define the integration range !
+REAL*8, PARAMETER :: x_low = 0 
+REAL*8, PARAMETER :: x_high = PI
+REAL*8, PARAMETER :: y_low = 0 
+REAL*8, PARAMETER :: y_high = 2*PI
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Grid, in general should be 3D !
 
@@ -42,6 +53,9 @@ REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: gamma
 
 ! One over gamma !
 REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: gammam1
+
+! Gamma factor !
+REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: gam_fac
 
 ! Relativistic beta !
 REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: beta_vel
@@ -79,6 +93,17 @@ REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:) :: ang_fac_out
 
 ! Total integrated Stokes 
 REAL*8, ALLOCATABLE, DIMENSION(:,:) :: stokes_total
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! For doing the double integral !
+
+! Arrays !
+REAL*8, ALLOCATABLE, DIMENSION(:) :: rhop_dir
+REAL*8, ALLOCATABLE, DIMENSION(:) :: alphap_dir
+REAL*8, ALLOCATABLE, DIMENSION(:) :: cosalpha_p
+REAL*8, ALLOCATABLE, DIMENSION(:) :: sinalpha_p
+REAL*8, ALLOCATABLE, DIMENSION(:) :: cosrho_p
+REAL*8, ALLOCATABLE, DIMENSION(:) :: sinrho_p
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

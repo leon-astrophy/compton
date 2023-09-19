@@ -26,10 +26,10 @@ CALL TERMINAL
 CALL SETUP
 
 ! Build arrays !
-CALL BUILD_ARRAYS
+CALL ARRAY
 
 ! Then, setup initial conditions !
-CALL MODEL
+CALL INITIAL
 
 ! Do the integraiton !
 CALL INTEGRATE

@@ -21,8 +21,7 @@ REAL*8 :: angle
 cosrho0_out = nhatx_in*sin0_in + nhatz_in*cos0_in
 cosrho0_out = MIN(cosrho0_out, 1.0d0)
 cosrho0_out = MAX(cosrho0_out, -1.0d0)
-angle = DACOS(cosrho0_out)
-sinrho0_out = DSIN(angle)
+sinrho0_out = DSQRT(1.0d0 - cosrho0_out**2)
 
 END SUBROUTINE
 
@@ -128,38 +127,67 @@ END SUBROUTINE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-! Calculate angular factor in the polarization integral
+! Calculate cow_p 
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE ANG_FAC_POWERLAW(cosrho0p_in, cosrho0_in, cos2zeta_in, sin2zeta_in, betavel_in, isc_out, qsc_out, usc_out)
+SUBROUTINE W_P(cosalphap_in, cosrho0p_in, sinrho0p_in, cosrhop_in, sinrhop_in, coswp_out, sinwp_out)
+USE DEFINITION
+IMPLICIT NONE
+  
+! Input !
+REAL*8, INTENT(IN) :: cosalphap_in, cosrho0p_in, sinrho0p_in, cosrhop_in, sinrhop_in
+
+! Output !
+REAL*8, INTENT(OUT) :: coswp_out, sinwp_out
+  
+! Calculate 
+coswp_out = cosalphap_in*sinrhop_in*sinrho0p_in + cosrhop_in*cosrho0p_in
+coswp_out = MIN(coswp_out, 1.0d0)
+coswp_out = MAX(coswp_out, -1.0d0)
+sinwp_out = DSQRT(1.0d0 - coswp_out**2)
+  
+END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Calculate cos2eta and sin2eta
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SUBROUTINE TWOETA(alphap_in, cosrhop_in, cosrho0p_in, sinrho0p_in, coswp_in, sinwp_in, cos2eta_out, sin2eta_out)
 USE DEFINITION
 IMPLICIT NONE
 
 ! Input !
-REAL*8, INTENT(IN) :: cosrho0p_in, cosrho0_in, cos2zeta_in, sin2zeta_in, betavel_in
+REAL*8, INTENT(IN) :: alphap_in, cosrhop_in, cosrho0p_in, sinrho0p_in, coswp_in, sinwp_in
 
 ! Output !
-REAL*8, INTENT(OUT) :: isc_out, qsc_out, usc_out
+REAL*8, INTENT(OUT) :: cos2eta_out, sin2eta_out
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Calculate based !
+! Local !
+REAL*8 :: coseta, sineta, eta, num, den
 
-! head-on approximatio !
-IF(headon) THEN
-
-  isc_out = (1.0d0 + cosrho0p_in**2)/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
-  qsc_out = (1.0d0 - cosrho0p_in**2)*cos2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
-  usc_out = (1.0d0 - cosrho0p_in**2)*sin2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
-
-! Full calculation by double integral !
-ELSEIF(full) THEN
-
-  ! Not yet implemented
-  STOP 'full integral not implemented'
-
+! Calculate 
+num = (cosrhop_in - cosrho0p_in*coswp_in)
+den = sinrho0p_in*sinwp_in
+IF(den == 0) THEN
+  coseta = 0.0d0
+ELSE
+  coseta = num/den
 END IF
+coseta = MIN(coseta, 1.0d0)
+coseta = MAX(coseta, -1.0d0)
+eta = DACOS(coseta)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Angle !
+IF(alphap_in >= pi) THEN
+  eta = 2.0D0*PI - eta
+END IF
+sineta = DSIN(eta)
+
+! Get angles !
+cos2eta_out = 2.0d0*coseta**2 - 1.0d0
+sin2eta_out = 2.0d0*sineta*coseta
 
 END SUBROUTINE

@@ -38,12 +38,8 @@ REAL*8 :: nu_light = 1.0D17
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Electron model, choose from analytic or GRMHD !
-LOGICAL, PARAMETER :: analytic = .false.
-LOGICAL, PARAMETER :: grmhd = .true.
-
-! Electron distribution, choose from dirac-delta or gaussian !
-LOGICAL, PARAMETER :: delta = .true.
-LOGICAL, PARAMETER :: gaussian = .false.
+LOGICAL, PARAMETER :: analytic = .true.
+LOGICAL, PARAMETER :: grmhd = .false.
 
 ! Integration mode, head-one approximation or full calculation !
 LOGICAL, PARAMETER :: headon = .true.
