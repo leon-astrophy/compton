@@ -572,7 +572,7 @@ REAL*8 :: cosw_p, sinw_p
 CALL W_P (cosalphap_in, cosrho0p_in, sinrho0p_in, cosrhop_in, sinrhop_in, cosw_p, sinw_p)
 
 ! Assign !
-int_out = sinrhop_in**2*(1.0d0+cosw_p**2)/(1.0d0+betavel_in*cosrhop_in)**(3+s_power)
+int_out = sinrhop_in*(1.0d0+cosw_p**2)/(1.0d0+betavel_in*cosrhop_in)**(3+s_power)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
@@ -603,7 +603,7 @@ CALL W_P (cosalphap_in, cosrho0p_in, sinrho0p_in, cosrhop_in, sinrhop_in, cosw_p
 CALL TWOETA(alphap_in, cosrhop_in, cosrho0p_in, sinrho0p_in, cosw_p, sinw_p, cos2eta, sin2eta)
 
 ! Assign !
-int_out = sinrhop_in**2*(1.0d0-cosw_p**2)/(1.0d0+betavel_in*cosrhop_in)**(3+s_power)!cos2eta
+int_out = sinrhop_in*(1.0d0-cosw_p**2)*cos2eta/(1.0d0+betavel_in*cosrhop_in)**(3+s_power)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

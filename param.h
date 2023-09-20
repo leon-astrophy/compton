@@ -18,16 +18,16 @@ INTEGER, PARAMETER :: n_integral = 100
 ! Number of grid along three axis !
 INTEGER :: nr = 2
 INTEGER :: nth = 128
-INTEGER :: nphi = 128
+INTEGER :: nphi = 2
 
 ! Viewing angle density !
-INTEGER, PARAMETER :: n_angle = 50
+INTEGER, PARAMETER :: n_angle = 100
 
 ! Electron distribution angle for dirac-delta function !
-REAL*8, PARAMETER :: theta_j = 0.0d0
+REAL*8, PARAMETER :: theta_j = pi/2 !0.6d0
 
 ! Electron distribution gamma for dirac-delta function !
-REAL*8, PARAMETER :: gamma_j = 2.0d0
+REAL*8, PARAMETER :: gamma_j = 1.01d0
 
 ! Index for power law radiation field !
 REAL*8, PARAMETER :: s_power = 1.0d0
