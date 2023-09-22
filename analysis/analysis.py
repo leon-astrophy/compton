@@ -109,6 +109,35 @@ isc_total = stokes[0,:]
 qsc_total = stokes[1,:]
 usc_total = stokes[2,:]
 
+print(isc_total)
+
+#############################################################################
+
+# plot #
+plt.clf()
+fig, axs = plt.subplots(nrows=3,ncols=1,sharex=True,gridspec_kw={'hspace': 0, 'wspace': 0})
+(ax1, ax2, ax3) = axs
+ax1.plot(theta*180/math.pi, qsc_total/isc_total, label=r'$Q/I$')
+ax1.plot(theta*180/math.pi,np.sqrt(usc_total**2 + qsc_total**2)/isc_total, label=r'$\sqrt{U^{2} + Q^{2}}/I$')
+ax1.legend()
+ax1.grid()
+ax2.hlines(y = 90, xmin = theta.min()*180/math.pi, xmax = theta.max()*180/math.pi, color='black', linestyles='-.')
+ax2.plot(theta*180/math.pi, 0.5*(math.pi - np.arctan(usc_total/qsc_total))*180/math.pi, label=r'EVPA')
+ax2.set_ylim(0, 180)
+ax2.legend()
+ax2.grid()
+ax3.hlines(y = 2, xmin = theta.min()*180/math.pi, xmax = theta.max()*180/math.pi, color='red', linestyles='-.', label='threshold')
+ax3.plot(theta*180/math.pi, np.log10(isc_total))
+ax3.set_ylim(0, 2)
+ax3.legend()
+ax3.grid()
+fig.text(0.01, 0.5, r'$y$', va='center', rotation='vertical')
+fig.text(0.45, 0.05, r'$\theta$', va='center', rotation='horizontal')
+plt.show()
+plt.close()
+
+#############################################################################
+
 # assign #
 r_grid = data['r-dir'][:].T
 th_grid = data['th-dir'][:].T
@@ -133,31 +162,11 @@ nx = nebar.shape[0]
 ny = nebar.shape[1]
 nz = nebar.shape[2]
 
-#############################################################################
-
-# plot #
-plt.clf()
-fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,gridspec_kw={'hspace': 0, 'wspace': 0})
-(ax1, ax2) = axs
-ax1.plot(theta*180/math.pi, qsc_total/isc_total, label=r'$Q/I$')
-ax1.plot(theta*180/math.pi,np.sqrt(usc_total**2 + qsc_total**2)/isc_total, label=r'$\sqrt{U^{2} + Q^{2}}/I$')
-ax1.legend()
-ax1.grid()
-ax2.hlines(y = 90, xmin = theta.min()*180/math.pi, xmax = theta.max()*180/math.pi, color='black', linestyles='-.')
-ax2.plot(theta*180/math.pi, 0.5*(math.pi - np.arctan(usc_total/qsc_total))*180/math.pi, label=r'EVPA')
-ax2.set_ylim(0, 180)
-ax2.legend()
-ax2.grid()
-fig.text(0.01, 0.5, r'$y$', va='center', rotation='vertical')
-fig.text(0.45, 0.05, r'$\theta$', va='center', rotation='horizontal')
-plt.show()
-plt.close()
-
-#############################################################################
-
 #mesh grid#
 X_half = r_grid[:,:,0] * np.sin(th_grid[:,:,0])
 Z_half = r_grid[:,:,0] * np.cos(th_grid[:,:,0])
+
+#############################################################################
 
 # plot #
 z = np.log10(nebar+np.max(nebar)/10**10) 

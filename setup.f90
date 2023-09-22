@@ -23,6 +23,14 @@ ELSEIF(grmhd) THEN
 END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Number of angles 
+
+! Set the number of viewing angles to 1 for discrete !
+IF(discrete) THEN
+  n_angle = 1
+END IF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 END SUBROUTINE
 
@@ -39,6 +47,7 @@ IMPLICIT NONE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! First, assign nx, ny, nz !
 
+! Assign according to parameter file !
 nx = nr
 ny = nth
 nz = nphi
@@ -60,6 +69,7 @@ IMPLICIT NONE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! First, assign nx, ny, nz !
 
+! Assign nx, ny, nz from GRMHD snapshots !
 CALL HDF5_OPEN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -126,9 +136,16 @@ ALLOCATE(sinrho_p(0:n_integral))
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Assign viewing angle !
 
-DO i = 1, n_angle
-  theta_0(i) = (DBLE(i) - 0.5d0)*pi/DBLE(n_angle)
-END DO
+! Choose between full-angle calculation or single angle !
+IF(full) THEN
+  DO i = 1, n_angle
+    theta_0(i) = (DBLE(i) - 0.5d0)*(theta_in)/DBLE(n_angle)
+  END DO
+ELSEIF(discrete) THEN
+  DO i = 1, n_angle
+    theta_0(i) = theta_in
+  END DO
+END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

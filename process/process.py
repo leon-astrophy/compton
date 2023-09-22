@@ -1,6 +1,6 @@
 #####################################################
 #
-# Pre-process GRMHD snapshots
+# Pre-process GRMHD snapshots to fed into xraypol
 #
 ######################################################
 
@@ -12,8 +12,14 @@ import numpy as np
 
 ######################################################
 
-#read#
+# terminal input #
 files = sys.argv[1]
+outfile = sys.argv[2]
+radcut = float(sys.argv[3])
+sigmacut = float(sys.argv[4])
+
+######################################################
+# read #
 dump = pyharm.load_dump(files)
 
 # assign #
@@ -35,18 +41,39 @@ phi = dump['phi']
 rho = dump['rho']
 gdet = dump['gdet']
 gamma = dump['Gamma']
+sigma = dump['sigma']
 
-# volume #
-vol = gdet*dx1*dx2*dx3
+######################################################
+# sigma cut #
+rho[np.where(sigma > sigmacut)] = 0
 
 ######################################################
 
-#rho[np.where(gamma < 1.1)] = 0
+# volume #
+vol = gdet*dx1*dx2*dx3
 
 # repeat #
 r = np.repeat(r, n3, axis=2)
 th = np.repeat(th, n3, axis=2)
 vol = np.repeat(vol, n3, axis=2)
+
+######################################################
+# look for radius cut #
+for i in range (0, r.shape[0]):
+  if(r[i,0,0] > radcut):
+    i_cut = i + 1
+    break
+
+######################################################
+# reduce the size of the array #
+r = r[0:i_cut,:,:]
+th = th[0:i_cut,:,:]
+phi = phi[0:i_cut,:,:]
+vol = vol[0:i_cut,:,:]
+rho = rho[0:i_cut,:,:]
+gamma = gamma[0:i_cut,:,:]
+
+######################################################
 
 # dmass #
 dmass = vol*rho

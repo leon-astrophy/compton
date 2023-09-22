@@ -11,21 +11,19 @@ IMPLICIT NONE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Choose according to parameter.h !
 
-! Isotropic plus power-law radiation or custom spectrum !
+! Choose different radiation spectrum !
 IF(powerlaw) THEN
+
+  ! Isotropic plus power-law radiation or custom spectrum !
   CALL INTEGRATE_POWERLAW
+
 ELSEIF(custom) THEN
 
-  ! Not yet implemetned !
+  ! Custom radiation field, Not yet implemetned !
   STOP 'not yet implemented'
-  !CALL INTEGRATE_CUSTOM
 
 END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Ouput after integration !
-
-! HDF5 output !
-CALL HDF5_OUT
 
 END SUBROUTINE

@@ -10,12 +10,13 @@ USE CLA
 IMPLICIT NONE
 
 ! String !
-CHARACTER (len=99) :: freq
+CHARACTER (len=99) :: freq, angles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! convert to string !
 write(freq, *) nu_light
+write(angles, *) theta_in
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -26,11 +27,13 @@ CALL CLA_INIT
 CALL CLA_REGISTER('-o', '--outfile', 'str', cla_char, output_file)
 CALL CLA_REGISTER('-s', '--snapshot', 'str', cla_char, grmhd_file)
 CALL CLA_REGISTER('-f', '--frequency', 'real', cla_float, freq)
+CALL CLA_REGISTER('-th', '--theta', 'real', cla_float, angles)
 
 ! Get values !
 CALL CLA_GET_CHAR('--outfile', output_file)
 CALL CLA_GET_CHAR('--snapshot', grmhd_file)
 CALL CLA_GET_FLOAT_R8('--frequency', nu_light)
+CALL CLA_GET_FLOAT_R8('--theta', theta_in)
 
 END SUBROUTINE
 
@@ -230,7 +233,8 @@ IMPLICIT NONE
 ! for HDF5 !
 character(len=99) :: filename
 integer :: error, space_rank
-integer(HSIZE_T) :: angular_dims(5), data_dims(3), stokes_dims(2), angle_dims(1)
+integer(HSIZE_T) :: angle_full_dims(5), angle_disc_dims(3)
+integer(HSIZE_T) :: data_dims(3), stokes_dims(2), angle_dims(1)
 integer(HID_T) :: file_id, dspace_id, dset_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -290,167 +294,89 @@ call h5dclose_f(dset_id,error)
 call h5sclose_f(dspace_id,error)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Choose according to mode !
 
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
+! Full angle calculation !
+IF(full) THEN
 
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
+  ! define DIMENSION !
+  space_rank = 5
+  angle_full_dims(1) = 2
+  angle_full_dims(2) = 3
+  angle_full_dims(3) = nx
+  angle_full_dims(4) = ny
+  angle_full_dims(5) = nz
 
-! create dataset !
-call h5dcreate_f(file_id,"r-dir",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
+  ! open dataspace !
+  call h5screate_simple_f(space_rank,angle_full_dims,dspace_id,error)
 
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,r_grid,data_dims,error)
+  ! create dataset !
+  call h5dcreate_f(file_id,"angular",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
 
-! close dataset !
-call h5dclose_f(dset_id,error)
+  ! write dataset !
+  call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,ang_fac_out,angle_full_dims,error)
 
-! close data space !
-call h5sclose_f(dspace_id,error)
+  ! close dataset !
+  call h5dclose_f(dset_id,error)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! close data space !
+  call h5sclose_f(dspace_id,error)
 
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
+! discrete angle !
+ELSEIF(discrete) THEN
 
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
+  ! define DIMENSION !
+  space_rank = 3
+  angle_disc_dims(1) = nx
+  angle_disc_dims(2) = ny
+  angle_disc_dims(3) = nz
 
-! create dataset !
-call h5dcreate_f(file_id,"th-dir",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
+  ! open dataspace !
+  call h5screate_simple_f(space_rank,angle_disc_dims,dspace_id,error)
 
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,th_grid,data_dims,error)
+  ! create dataset !
+  call h5dcreate_f(file_id,"ang_fac_isc",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
 
-! close dataset !
-call h5dclose_f(dset_id,error)
+  ! write dataset !
+  call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,ang_fac_isc,angle_disc_dims,error)
 
-! close data space !
-call h5sclose_f(dspace_id,error)
+  ! close dataset !
+  call h5dclose_f(dset_id,error)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! close data space !
+  call h5sclose_f(dspace_id,error)
 
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
+  ! open dataspace !
+  call h5screate_simple_f(space_rank,angle_disc_dims,dspace_id,error)
 
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
+  ! create dataset !
+  call h5dcreate_f(file_id,"ang_fac_qsc",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
 
-! create dataset !
-call h5dcreate_f(file_id,"phi-dir",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
+  ! write dataset !
+  call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,ang_fac_qsc,angle_disc_dims,error)
 
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,phi_grid,data_dims,error)
+  ! close dataset !
+  call h5dclose_f(dset_id,error)
 
-! close dataset !
-call h5dclose_f(dset_id,error)
+  ! close data space !
+  call h5sclose_f(dspace_id,error)
 
-! close data space !
-call h5sclose_f(dspace_id,error)
+  ! open dataspace !
+  call h5screate_simple_f(space_rank,angle_disc_dims,dspace_id,error)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! create dataset !
+  call h5dcreate_f(file_id,"ang_fac_usc",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
 
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
+  ! write dataset !
+  call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,ang_fac_usc,angle_disc_dims,error)
 
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
+  ! close dataset !
+  call h5dclose_f(dset_id,error)
 
-! create dataset !
-call h5dcreate_f(file_id,"electron",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
+  ! close data space !
+  call h5sclose_f(dspace_id,error)
 
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,nebar,data_dims,error)
-
-! close dataset !
-call h5dclose_f(dset_id,error)
-
-! close data space !
-call h5sclose_f(dspace_id,error)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
-
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
-
-! create dataset !
-call h5dcreate_f(file_id,"volume",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
-
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,vol,data_dims,error)
-
-! close dataset !
-call h5dclose_f(dset_id,error)
-
-! close data space !
-call h5sclose_f(dspace_id,error)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! define DIMENSION !
-space_rank = 3
-data_dims(1) = nx
-data_dims(2) = ny
-data_dims(3) = nz
-
-! open dataspace !
-call h5screate_simple_f(space_rank,data_dims,dspace_id,error)
-
-! create dataset !
-call h5dcreate_f(file_id,"gam_fac",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
-
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,gam_fac,data_dims,error)
-
-! close dataset !
-call h5dclose_f(dset_id,error)
-
-! close data space !
-call h5sclose_f(dspace_id,error)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! define DIMENSION !
-space_rank = 5
-angular_dims(1) = 2
-angular_dims(2) = 3
-angular_dims(3) = nx
-angular_dims(4) = ny
-angular_dims(5) = nz
-
-! open dataspace !
-call h5screate_simple_f(space_rank,angular_dims,dspace_id,error)
-
-! create dataset !
-call h5dcreate_f(file_id,"angular",H5T_NATIVE_DOUBLE,dspace_id,dset_id,error)
-
-! write dataset !
-call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,ang_fac_out,angular_dims,error)
-
-! close dataset !
-call h5dclose_f(dset_id,error)
-
-! close data space !
-call h5sclose_f(dspace_id,error)
+END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

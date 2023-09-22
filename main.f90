@@ -34,6 +34,9 @@ CALL INITIAL
 ! Do the integraiton !
 CALL INTEGRATE
 
+! Ouput after integration !
+CALL HDF5_OUT
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 END PROGRAM

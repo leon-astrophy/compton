@@ -93,8 +93,8 @@ DO i = 1, nx
       IF(j == j_th) THEN
         nebar(i,j,k) = dphi/(2.0d0*pi)/DBLE(nx)/vol(i,j,k)
         gamma(i,j,k) = gamma_j
-        gammam1(i,j,k) = 1.0d0/gamma_j
-        beta_vel(i,j,k) = DSQRT(1.0d0 - 1.0d0/gamma_j**2)
+        gammam1(i,j,k) = 1.0d0/gamma(i,j,k)
+        beta_vel(i,j,k) = DSQRT(1.0d0 - 1.0d0/gamma(i,j,k)**2)
       ELSE
         nebar(i,j,k) = 0.0d0
         gamma(i,j,k) = 1.0d0

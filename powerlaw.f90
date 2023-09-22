@@ -11,8 +11,9 @@ IMPLICIT NONE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Choose !
 
-IF(full) THEN
-  CALL FULL_POWERLAW
+! Choose between exact or head-on approx !
+IF(exact) THEN
+  CALL EXACT_POWERLAW
 ELSEIF(headon) THEN
   CALL HEADON_POWERLAW
 END IF
@@ -122,90 +123,96 @@ DO n = 1, n_angle
 END DO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for minimum and maximum PD position angle !
+IF(full) THEN
 
-! Locate minimum and maximum index !
-n_min = MINLOC(pdegree, DIM=1)
-n_max = MAXLOC(pdegree, DIM=1)
+  ! Locate minimum and maximum index !
+  n_min = MINLOC(pdegree, DIM=1)
+  n_max = MAXLOC(pdegree, DIM=1)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Look for angular factor at minimum !
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Look for angular factor at minimum !
 
-! Initialize !
-n = n_min
-theta_view = theta_0(n)
-isc_total = 0.0d0
-qsc_total = 0.0d0
-usc_total = 0.0d0
+  ! Initialize !
+  n = n_min
+  theta_view = theta_0(n)
+  isc_total = 0.0d0
+  qsc_total = 0.0d0
+  usc_total = 0.0d0
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Assign !
-sin_0 = DSIN(theta_0(n))
-cos_0 = DCOS(theta_0(n))
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Assign !
+  sin_0 = DSIN(theta_0(n))
+  cos_0 = DCOS(theta_0(n))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! We loop over the computational domain !
-!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
-!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
-!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
-DO i = 1, nx
-  DO j = 1, ny
-    DO k = 1, nz
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! We loop over the computational domain !
+  !$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+  !$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+  !$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+  DO i = 1, nx
+    DO j = 1, ny
+      DO k = 1, nz
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angles !
-      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
-      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
-      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
-      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angles !
+        CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+        CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+        CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+        CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angular contribution !
-      CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
-      
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angular contribution !
+        CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
+        
+      END DO
     END DO
   END DO
-END DO
-!$OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Look for angular factor at maximum !
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Look for angular factor at maximum !
 
-! Initialize !
-n = n_max
-theta_view = theta_0(n)
-isc_total = 0.0d0
-qsc_total = 0.0d0
-usc_total = 0.0d0
+  ! Initialize !
+  n = n_max
+  theta_view = theta_0(n)
+  isc_total = 0.0d0
+  qsc_total = 0.0d0
+  usc_total = 0.0d0
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Assign !
-sin_0 = DSIN(theta_0(n))
-cos_0 = DCOS(theta_0(n))
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Assign !
+  sin_0 = DSIN(theta_0(n))
+  cos_0 = DCOS(theta_0(n))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! We loop over the computational domain !
-!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
-!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
-!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
-DO i = 1, nx
-  DO j = 1, ny
-    DO k = 1, nz
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! We loop over the computational domain !
+  !$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+  !$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+  !$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+  DO i = 1, nx
+    DO j = 1, ny
+      DO k = 1, nz
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angles !
-      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
-      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
-      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
-      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angles !
+        CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+        CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+        CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+        CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angular contribution !
-      CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
-      
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angular contribution !
+        CALL ANGFAC_POWERLAW_HEADON(cosrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
+        
+      END DO
     END DO
   END DO
-END DO
-!$OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -217,7 +224,7 @@ END SUBROUTINE
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE FULL_POWERLAW
+SUBROUTINE EXACT_POWERLAW
 USE OMP_LIB
 USE DEFINITION
 IMPLICIT NONE
@@ -312,90 +319,96 @@ DO n = 1, n_angle
 END DO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Look for minimum and maximum PD position angle !
+IF(full) THEN
 
-! Locate minimum and maximum index !
-n_min = MINLOC(pdegree, DIM=1)
-n_max = MAXLOC(pdegree, DIM=1)
+  ! Locate minimum and maximum index !
+  n_min = MINLOC(pdegree, DIM=1)
+  n_max = MAXLOC(pdegree, DIM=1)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Look for angular factor at minimum pd
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Look for angular factor at minimum pd
 
-! Initialize
-n = n_min
-theta_view = theta_0(n)
-isc_total = 0.0d0
-qsc_total = 0.0d0
-usc_total = 0.0d0
+  ! Initialize
+  n = n_min
+  theta_view = theta_0(n)
+  isc_total = 0.0d0
+  qsc_total = 0.0d0
+  usc_total = 0.0d0
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Assign !
-sin_0 = DSIN(theta_0(n))
-cos_0 = DCOS(theta_0(n))
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Assign !
+  sin_0 = DSIN(theta_0(n))
+  cos_0 = DCOS(theta_0(n))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! We loop over the computational domain !
-!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
-!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
-!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
-DO i = 1, nx
-  DO j = 1, ny
-    DO k = 1, nz
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! We loop over the computational domain !
+  !$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+  !$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+  !$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+  DO i = 1, nx
+    DO j = 1, ny
+      DO k = 1, nz
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angles !
-      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
-      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
-      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
-      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angles !
+        CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+        CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+        CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+        CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angular contribution !
-      CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
-    
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angular contribution !
+        CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(1,1,i,j,k), ang_fac_out(1,2,i,j,k), ang_fac_out(1,3,i,j,k))
+      
+      END DO
     END DO
   END DO
-END DO
-!$OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Look for angular factor at minimum pd
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Look for angular factor at minimum pd
 
-! Initialize !
-n = n_max
-theta_view = theta_0(n)
-isc_total = 0.0d0
-qsc_total = 0.0d0
-usc_total = 0.0d0
+  ! Initialize !
+  n = n_max
+  theta_view = theta_0(n)
+  isc_total = 0.0d0
+  qsc_total = 0.0d0
+  usc_total = 0.0d0
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Assign !
-sin_0 = DSIN(theta_0(n))
-cos_0 = DCOS(theta_0(n))
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Assign !
+  sin_0 = DSIN(theta_0(n))
+  cos_0 = DCOS(theta_0(n))
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! We loop over the computational domain !
-!$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
-!$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
-!$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
-DO i = 1, nx
-  DO j = 1, ny
-    DO k = 1, nz
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! We loop over the computational domain !
+  !$OMP PARALLEL DO COLLAPSE(3) SCHEDULE(STATIC) FIRSTPRIVATE(cos_0, sin_0, theta_view) &
+  !$OMP PRIVATE(cosz_0, sinz_0, cosrho_0, sinrho_0, cosrho0_p, sinrho0_p, cos2zeta, sin2zeta) &
+  !$OMP REDUCTION(+:isc_total, qsc_total, usc_total)
+  DO i = 1, nx
+    DO j = 1, ny
+      DO k = 1, nz
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angles !
-      CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
-      CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
-      CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
-      CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angles !
+        CALL RHO_0(nhat_x(i,j,k), nhat_z(i,j,k), cos_0, sin_0, cosrho_0, sinrho_0)
+        CALL Z_0(nhat_z(i,j,k), cosz_0, sinz_0)
+        CALL TWOZETA(phi_grid(i,j,k), cosz_0, cos_0, cosrho_0, sin_0, sinrho_0, cos2zeta, sin2zeta)
+        CALL RHO0_P(cosrho_0, beta_vel(i,j,k), cosrho0_p, sinrho0_p)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      ! Get angular contribution !
-      CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
-    
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ! Get angular contribution !
+        CALL ANGFAC_POWERLAW_FULL(cosrho0_p, sinrho0_p, cosrho_0, cos2zeta, sin2zeta, beta_vel(i,j,k), ang_fac_out(2,1,i,j,k), ang_fac_out(2,2,i,j,k), ang_fac_out(2,3,i,j,k))
+      
+      END DO
     END DO
   END DO
-END DO
-!$OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -444,13 +457,16 @@ REAL*8, INTENT(IN) :: cosrho0p_in, sinrho0p_in, cosrho0_in, cos2zeta_in, sin2zet
 ! Output !
 REAL*8, INTENT(OUT) :: isc_out, qsc_out, usc_out
 
+! Real !
+REAL*8 :: iprime_out, qprime_out
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Calculate !
 
-CALL DBINTEGRAL_POWERLAW(cosrho0p_in, sinrho0p_in, cosrho0_in, betavel_in, isc_out, qsc_out, usc_out)
-isc_out = isc_out/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
-qsc_out = qsc_out*cos2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
-usc_out = usc_out*sin2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
+CALL DBINTEGRAL_POWERLAW(cosrho0p_in, sinrho0p_in, cosrho0_in, betavel_in, iprime_out, qprime_out)
+isc_out = iprime_out/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
+qsc_out = qprime_out*cos2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
+usc_out = qprime_out*sin2zeta_in/(1.0d0 - betavel_in*cosrho0_in)**(2.0d0 + s_power)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -462,13 +478,13 @@ END SUBROUTINE
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE DBINTEGRAL_POWERLAW(cosrho0p_in, sinrho0p_in, cosrho0_in, betavel_in, isc_out, qsc_out, usc_out)
+SUBROUTINE DBINTEGRAL_POWERLAW(cosrho0p_in, sinrho0p_in, cosrho0_in, betavel_in, iprime_out, qprime_out)
 USE DEFINITION
 IMPLICIT NONE
 
 ! Input !
 REAL*8, INTENT(IN) :: cosrho0p_in, sinrho0p_in, cosrho0_in, betavel_in
-REAL*8, INTENT(OUT) :: isc_out, qsc_out, usc_out
+REAL*8, INTENT(OUT) :: iprime_out, qprime_out
 
 ! INTEGER !
 INTEGER :: i, j, k
@@ -484,8 +500,8 @@ REAL*8 :: gout_m1, gout_c, gout_p1
 ! evaluate the integral !
 
 ! Initialize !
-isc_out = 0
-uqsc_out = 0
+iprime_out = 0
+qprime_out = 0
 
 ! Loop over the domain !
 DO i = 1, n_integral, 2
@@ -502,48 +518,44 @@ DO i = 1, n_integral, 2
   DO j = 1, n_integral, 2
 
     ! For the scattering intensity !
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j-1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j+1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j-1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j+1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
     fout_m1 = fout_m1 + dalphap*(fin_m1 + 4.0d0*fin_c + fin_p1)/3.0d0
 
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j-1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j+1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j-1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j+1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
     fout_c = fout_c + dalphap*(fin_m1 + 4.0d0*fin_c + fin_p1)/3.0d0
 
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j-1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
-    CALL INTEGRAND_ISC_POWERLAW(cosalpha_p(j+1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j-1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_m1)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_c)
+    CALL INTEGRAND_IP_POWERLAW(cosalpha_p(j+1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, fin_p1)
     fout_p1 = fout_p1 + dalphap*(fin_m1 + 4.0d0*fin_c + fin_p1)/3.0d0
 
     ! For the stokes U and Q !
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i-1), sinrho_p(i-1), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
     gout_m1 = gout_m1 + dalphap*(gin_m1 + 4.0d0*gin_c + gin_p1)/3.0d0
 
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i), sinrho_p(i), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
     gout_c = gout_c + dalphap*(gin_m1 + 4.0d0*gin_c + gin_p1)/3.0d0    
 
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
-    CALL INTEGRAND_UQSC_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j-1), cosalpha_p(j-1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_m1)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j), cosalpha_p(j), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_c)
+    CALL INTEGRAND_QP_POWERLAW(alphap_dir(j+1), cosalpha_p(j+1), cosrho_p(i+1), sinrho_p(i+1), cosrho0p_in, sinrho0p_in, betavel_in, gin_p1)
     gout_p1 = gout_p1 + dalphap*(gin_m1 + 4.0d0*gin_c + gin_p1)/3.0d0  
 
   END DO
   
   ! Do the outer integration !
-  isc_out = isc_out + drhop*(fout_m1 + 4.0d0*fout_c + fout_p1)/3.0d0
-  uqsc_out = uqsc_out + drhop*(gout_m1 + 4.0d0*gout_c + gout_p1)/3.0d0
+  iprime_out = iprime_out + drhop*(fout_m1 + 4.0d0*fout_c + fout_p1)/3.0d0
+  qprime_out = qprime_out + drhop*(gout_m1 + 4.0d0*gout_c + gout_p1)/3.0d0
 
 END DO
-
-! Scale down !
-qsc_out = uqsc_out
-usc_out = uqsc_out
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -555,7 +567,7 @@ END SUBROUTINE
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE INTEGRAND_ISC_POWERLAW(cosalphap_in, cosrhop_in, sinrhop_in, cosrho0p_in, sinrho0p_in, betavel_in, int_out)
+SUBROUTINE INTEGRAND_IP_POWERLAW(cosalphap_in, cosrhop_in, sinrhop_in, cosrho0p_in, sinrho0p_in, betavel_in, int_out)
 USE DEFINITION
 IMPLICIT NONE
 
@@ -584,7 +596,7 @@ END SUBROUTINE
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE INTEGRAND_UQSC_POWERLAW(alphap_in, cosalphap_in, cosrhop_in, sinrhop_in, cosrho0p_in, sinrho0p_in, betavel_in, int_out)
+SUBROUTINE INTEGRAND_QP_POWERLAW(alphap_in, cosalphap_in, cosrhop_in, sinrhop_in, cosrho0p_in, sinrho0p_in, betavel_in, int_out)
 USE DEFINITION
 IMPLICIT NONE
 
