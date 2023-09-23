@@ -29,7 +29,6 @@ END SUBROUTINE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 SUBROUTINE HEADON_POWERLAW
-USE OMP_LIB
 USE DEFINITION
 IMPLICIT NONE
 
@@ -225,7 +224,6 @@ END SUBROUTINE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 SUBROUTINE EXACT_POWERLAW
-USE OMP_LIB
 USE DEFINITION
 IMPLICIT NONE
 

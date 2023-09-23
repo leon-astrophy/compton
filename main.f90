@@ -8,14 +8,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 PROGRAM XRAYPOL
+#ifdef DCPU
 USE OMP_LIB
+#endif
 USE DEFINITION
 IMPLICIT NONE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Set openmp threads !
 
-CALL OMP_SET_NUM_THREADS(4)
+#ifdef DCPU
+CALL OMP_SET_NUM_THREADS(16)
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

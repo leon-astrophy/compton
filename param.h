@@ -16,9 +16,9 @@ REAL*8, PARAMETER :: small_num = TINY(1.0D0)
 INTEGER :: n_integral = 100
 
 ! Number of grid along three axis !
-INTEGER :: nr = 2
+INTEGER :: nr = 288
 INTEGER :: nth = 128
-INTEGER :: nphi = 2
+INTEGER :: nphi = 128
 
 ! Viewing angle density !
 INTEGER :: n_angle = 100
