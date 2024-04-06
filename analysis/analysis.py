@@ -8,11 +8,10 @@
 import sys
 import h5py
 import math
+import pyharm
 import numpy as np
-import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import matplotlib.offsetbox as offsetbox
 from matplotlib.colors import TwoSlopeNorm
 
@@ -41,41 +40,41 @@ def plot(x, y, z, phi_in, var, cmap1, cmap2):
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower right', prop=props)
   ax1.add_artist(ob) 
-  ax1.contourf(-x, y, z[:,:,0+nz//2], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,0+nz//2]*180/math.pi),))
+  ax1.contourf(-x, y, z[:,:,0+z.shape[2]//2], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,0+z.shape[2]//2]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower left', prop=props)
   ax1.add_artist(ob) 
 
-  ax2.contourf(x, y, z[:,:,nz//8], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,nz//8]*180/math.pi),))
+  ax2.contourf(x, y, z[:,:,z.shape[2]//8], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,z.shape[2]//8]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower right', prop=props)
   ax2.add_artist(ob) 
-  ax2.contourf(-x, y, z[:,:,nz//8+nz//2], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,nz//8+nz//2]*180/math.pi),))
+  ax2.contourf(-x, y, z[:,:,z.shape[2]//8+z.shape[2]//2], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,z.shape[2]//8+z.shape[2]//2]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower left', prop=props)
   ax2.add_artist(ob) 
 
-  ax3.contourf(x, y, z[:,:,nz//4], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,nz//4]*180/math.pi),))
+  ax3.contourf(x, y, z[:,:,z.shape[2]//4], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,z.shape[2]//4]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower right', prop=props)
   ax3.add_artist(ob) 
-  ax3.contourf(-x, y, z[:,:,nz//4+nz//2], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,nz//4+nz//2]*180/math.pi),))
+  ax3.contourf(-x, y, z[:,:,z.shape[2]//4+z.shape[2]//2], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,z.shape[2]//4+z.shape[2]//2]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower left', prop=props)
   ax3.add_artist(ob) 
 
-  ax4.contourf(x, y, z[:,:,3*nz//8], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,3*nz//8]*180/math.pi),))
+  ax4.contourf(x, y, z[:,:,3*z.shape[2]//8], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,3*z.shape[2]//8]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower right', prop=props)
   ax4.add_artist(ob) 
-  ax4.contourf(-x, y, z[:,:,3*nz//8+nz//2], 100, norm=norm, cmap=cmap)
-  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,3*nz//8+nz//2]*180/math.pi),))
+  ax4.contourf(-x, y, z[:,:,3*z.shape[2]//8+z.shape[2]//2], 100, norm=norm, cmap=cmap)
+  textstr = '\n'.join((r'$\phi$ = %.2f' % (phi_in[0,0,3*z.shape[2]//8+z.shape[2]//2]*180/math.pi),))
   props = dict(color = 'black', size = 15) 
   ob = offsetbox.AnchoredText(textstr, loc='lower left', prop=props)
   ax4.add_artist(ob) 
@@ -98,7 +97,7 @@ def plot(x, y, z, phi_in, var, cmap1, cmap2):
 #############################################################################
 
 # read data #
-data = h5py.File(sys.argv[1],'r+')    
+data = h5py.File(sys.argv[1],'r+')
 
 # assign #
 theta = data['theta0'][:]
@@ -108,8 +107,6 @@ stokes = data['stokes'][:].T
 isc_total = stokes[0,:]
 qsc_total = stokes[1,:]
 usc_total = stokes[2,:]
-
-print(isc_total)
 
 #############################################################################
 
@@ -135,6 +132,48 @@ fig.text(0.01, 0.5, r'$y$', va='center', rotation='vertical')
 fig.text(0.45, 0.05, r'$\theta$', va='center', rotation='horizontal')
 plt.show()
 plt.close()
+
+1/0
+
+# load map #
+ang_fac_isc = angfile['ang_fac_isc'][()].T
+ang_fac_qsc = angfile['ang_fac_qsc'][()].T
+ang_fac_usc = angfile['ang_fac_usc'][()].T
+nx = ang_fac_isc.shape[0]
+n3 = ang_fac_isc.shape[2]
+
+#########################################################################
+# open HARM snapshot #
+input = 'torus.h5'
+dump = pyharm.load_dump(input)
+
+# load harm #
+dx1 = dump['dx1']
+dx2 = dump['dx2']
+dx3 = dump['dx3']
+r = dump['r'][0:nx, :]  
+th = dump['th'][0:nx, :]  
+phi = dump['phi'][0:nx, :, :]  
+rho = dump['rho'][0:nx, :, :]  
+gdet = dump['gdet'][0:nx, :,]  
+sigma = dump['sigma'][0:nx, :, :]  
+vol = gdet*dx1*dx2*dx3
+r = np.repeat(r, n3, axis=2)
+th = np.repeat(th, n3, axis=2)
+vol = np.repeat(vol, n3, axis=2)
+
+#mesh grid#
+X_half = r[:,:,0] * np.sin(th[:,:,0])
+Z_half = r[:,:,0] * np.cos(th[:,:,0])
+
+# plot #
+z = ang_fac_isc
+plot(X_half, Z_half, z, phi, '$_{e}$', 'RdGy', 'magma')
+z = ang_fac_qsc
+plot(X_half, Z_half, z, phi, '$n_{e}$', 'RdGy', 'magma')
+z = ang_fac_usc
+plot(X_half, Z_half, z, phi, '$n_{e}$', 'RdGy', 'magma')
+1/0
 
 #############################################################################
 

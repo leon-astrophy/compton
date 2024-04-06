@@ -9,6 +9,18 @@ USE DEFINITION
 IMPLICIT NONE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! CONVERT ALL ANGLES INTO RADIANS !
+
+theta_j = theta_j*pi/180.0d0
+theta_observe = theta_observe*pi/180.0d0
+phi_j = phi_j*pi/180.0d0
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! CONVERT FREQUENCY INTO HZ, CONVERT TEMPERATURE INTO KELVIN
+nu_light = 10.0d0**(nu_light)
+bbody_temp = 10.0d0**(bbody_temp)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Choose between GRMHD or analytic models !
 IF(analytic) THEN
   
@@ -26,9 +38,7 @@ END IF
 ! Number of angles 
 
 ! Set the number of viewing angles to 1 for discrete !
-IF(discrete) THEN
-  n_angle = 1
-END IF
+n_angle = 1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,34 +104,31 @@ INTEGER :: i
 
 ! Viewing angle !
 ALLOCATE(theta_0(1:n_angle))
-ALLOCATE(pdegree(1:n_angle))
-ALLOCATE(stokes_total(1:3,1:n_angle))
 
 ! Grid !
 ALLOCATE(r_grid(1:nx,1:ny,1:nz))
 ALLOCATE(th_grid(1:nx,1:ny,1:nz))
 ALLOCATE(phi_grid(1:nx,1:ny,1:nz))
-ALLOCATE(vol(1:nx,1:ny,1:nz))
 
 ! Fluid !
+ALLOCATE(nrho(1:nx,1:ny,1:nz))
 ALLOCATE(gamma(1:nx,1:ny,1:nz))
-ALLOCATE(gammam1(1:nx,1:ny,1:nz))
-ALLOCATE(gam_fac(1:nx,1:ny,1:nz))
 ALLOCATE(beta_vel(1:nx,1:ny,1:nz))
-ALLOCATE(nebar(1:nx,1:ny,1:nz))
 
 ! Electron !
-ALLOCATE(nhat_x(1:nx,1:ny,1:nz))
-ALLOCATE(nhat_y(1:nx,1:ny,1:nz))
-ALLOCATE(nhat_z(1:nx,1:ny,1:nz))
+ALLOCATE(nhat_r(1:nx,1:ny,1:nz))
+ALLOCATE(nhat_th(1:nx,1:ny,1:nz))
+ALLOCATE(nhat_phi(1:nx,1:ny,1:nz))
+
+! Photon !
+ALLOCATE(khat_r(1:nx,1:ny,1:nz))
+ALLOCATE(khat_th(1:nx,1:ny,1:nz))
+ALLOCATE(khat_phi(1:nx,1:ny,1:nz))
 
 ! Angular factor !
-ALLOCATE(ang_fac_isc(1:nx,1:ny,1:nz))
-ALLOCATE(ang_fac_qsc(1:nx,1:ny,1:nz))
-ALLOCATE(ang_fac_usc(1:nx,1:ny,1:nz))
-
-! Angular factor !
-ALLOCATE(ang_fac_out(1:2,1:3,1:nx,1:ny,1:nz))
+ALLOCATE(fsc(1:nx,1:ny,1:nz))
+ALLOCATE(gsc(1:nx,1:ny,1:nz))
+ALLOCATE(hsc(1:nx,1:ny,1:nz))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! For double integral !
@@ -137,15 +144,9 @@ ALLOCATE(sinrho_p(0:n_integral))
 ! Assign viewing angle !
 
 ! Choose between full-angle calculation or single angle !
-IF(full) THEN
-  DO i = 1, n_angle
-    theta_0(i) = (DBLE(i) - 0.5d0)*(theta_in)/DBLE(n_angle)
-  END DO
-ELSEIF(discrete) THEN
-  DO i = 1, n_angle
-    theta_0(i) = theta_in
-  END DO
-END IF
+DO i = 1, n_angle
+  theta_0(i) = theta_observe
+END DO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -6,5 +6,5 @@
 ./initial.f90
 ./angles.f90
 ./dataio.f90
-./powerlaw.f90
-./model.f90
+./integrate.f90
+./radiation.f90

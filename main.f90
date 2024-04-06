@@ -18,7 +18,7 @@ IMPLICIT NONE
 ! Set openmp threads !
 
 #ifdef DCPU
-CALL OMP_SET_NUM_THREADS(16)
+CALL OMP_SET_NUM_THREADS(64)
 #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

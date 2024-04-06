@@ -1,15 +1,54 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-! Calculate cosrho_0 and sinrho_0
+! Calculate costheta_e
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE RHO_0(nhatx_in, nhatz_in, cos0_in, sin0_in, cosrho0_out, sinrho0_out)
+SUBROUTINE THETA_E(theta_in, phi_in, nhatr_in, nhatth_in, nhatphi_in, costhetae_out, edoty_out, edotz_out)
 USE DEFINITION
 IMPLICIT NONE
 
 ! Input !
-REAL*8, INTENT(IN) :: nhatx_in, nhatz_in, cos0_in, sin0_in
+REAL*8, INTENT(IN) :: theta_in, phi_in, nhatr_in, nhatth_in, nhatphi_in
+
+! Output !
+REAL*8, INTENT(OUT) :: costhetae_out, edoty_out, edotz_out
+
+! Angles !
+REAL*8 :: zdotr, zdotth, zdotphi
+REAL*8 :: ydotr, ydotth, ydotphi
+
+! Calculate !
+zdotr = rdotz(theta_in, phi_in)
+zdotth = thdotz(theta_in, phi_in)
+zdotphi = phidotz(theta_in, phi_in)
+ydotr = rdoty(theta_in, phi_in)
+ydotth = thdoty(theta_in, phi_in)
+ydotphi = phidoty(theta_in, phi_in)
+
+! Calculate 
+costhetae_out = nhatr_in*zdotr + nhatth_in*zdotth + nhatphi_in*zdotphi
+costhetae_out = MIN(costhetae_out, 1.0d0)
+costhetae_out = MAX(costhetae_out, -1.0d0)
+
+! Calculate !
+edoty_out = nhatr_in*ydotr + nhatth_in*ydotth + nhatphi_in*ydotphi
+edotz_out = nhatr_in*zdotr + nhatth_in*zdotth + nhatphi_in*zdotphi
+
+END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Calculate cosrho_0 and sinrho_0
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SUBROUTINE RHO_0(khatr_in, khatth_in, khatphi_in, nhatr_in, nhatth_in, nhatphi_in, cosrho0_out, sinrho0_out)
+USE DEFINITION
+IMPLICIT NONE
+
+! Input !
+REAL*8, INTENT(IN) :: khatr_in, khatth_in, khatphi_in, nhatr_in, nhatth_in, nhatphi_in
 
 ! Output !
 REAL*8, INTENT(OUT) :: cosrho0_out, sinrho0_out
@@ -18,34 +57,10 @@ REAL*8, INTENT(OUT) :: cosrho0_out, sinrho0_out
 REAL*8 :: angle
 
 ! Calculate 
-cosrho0_out = nhatx_in*sin0_in + nhatz_in*cos0_in
+cosrho0_out = khatr_in*nhatr_in + khatth_in*nhatth_in + khatphi_in*nhatphi_in
 cosrho0_out = MIN(cosrho0_out, 1.0d0)
 cosrho0_out = MAX(cosrho0_out, -1.0d0)
 sinrho0_out = DSQRT(1.0d0 - cosrho0_out**2)
-
-END SUBROUTINE
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!
-! Calculate cosz_0 and sinz_0
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-SUBROUTINE Z_0(nhatz_in, cosz0_out, sinz0_out)
-USE DEFINITION
-IMPLICIT NONE
-
-! Input !
-REAL*8, INTENT(IN) :: nhatz_in
-
-! Output !
-REAL*8, INTENT(OUT) :: cosz0_out, sinz0_out
-
-! Calculate 
-cosz0_out = nhatz_in
-cosz0_out = MIN(cosz0_out, 1.0d0)
-cosz0_out = MAX(cosz0_out, -1.0d0)
-sinz0_out = DSQRT(1.0d0 - cosz0_out**2)
 
 END SUBROUTINE
 
@@ -55,12 +70,12 @@ END SUBROUTINE
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE TWOZETA(phie_in, cosz0_in, cos0_in, cosrho0_in, sin0_in, sinrho0_in, cos2zeta_out, sin2zeta_out)
+SUBROUTINE TWOZETA(edoty_in, edotz_in, cos0_in, cosrho0_in, sin0_in, sinrho0_in, cos2zeta_out, sin2zeta_out)
 USE DEFINITION
 IMPLICIT NONE
 
 ! Input !
-REAL*8, INTENT(IN) :: phie_in, cosz0_in, cos0_in, cosrho0_in, sin0_in, sinrho0_in
+REAL*8, INTENT(IN) :: edoty_in, edotz_in, cos0_in, cosrho0_in, sin0_in, sinrho0_in
 
 ! Output !
 REAL*8, INTENT(OUT) :: cos2zeta_out, sin2zeta_out
@@ -69,7 +84,7 @@ REAL*8, INTENT(OUT) :: cos2zeta_out, sin2zeta_out
 REAL*8 :: coszeta, sinzeta, zeta, num, den
 
 ! Calculate 
-num = (cosz0_in - cos0_in*cosrho0_in)
+num = (edotz_in - cos0_in*cosrho0_in)
 den = sin0_in*sinrho0_in
 IF(den == 0) THEN
   coszeta = 0.0d0
@@ -81,7 +96,7 @@ coszeta = MAX(coszeta, -1.0d0)
 zeta = DACOS(coszeta)
 
 ! Angle !
-IF(phie_in >= pi) THEN
+IF(edoty_in < 0) THEN
   zeta = 2.0D0*PI - zeta
 END IF
 sinzeta = DSIN(zeta)
